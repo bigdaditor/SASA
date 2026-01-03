@@ -39,6 +39,9 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    // Validation API (optional dependency for validation annotations)
+    compileOnly 'jakarta.validation:jakarta.validation-api'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
