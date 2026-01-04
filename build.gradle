@@ -55,6 +55,11 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// Automatically publish to Maven Local after build
+tasks.named('build') {
+    finalizedBy 'publishToMavenLocal'
+}
+
 // Library publishing configuration
 publishing {
     publications {
