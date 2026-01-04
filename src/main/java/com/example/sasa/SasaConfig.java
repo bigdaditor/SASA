@@ -124,7 +124,7 @@ public class SasaConfig {
     }
 
     public static class Builder {
-        private boolean enableConsoleOutput = true;
+        private boolean enableConsoleOutput = false;
         private boolean enableFileOutput = true;
         private String outputFilePath = "build/api-spec.json";
         private String applicationName = "SASA";
