@@ -2,6 +2,7 @@ package com.example.sasa;
 
 import com.example.sasa.extractor.EndpointExtractor;
 import com.example.sasa.extractor.ExceptionHandlerExtractor;
+import com.example.sasa.generator.HtmlGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -9,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -75,6 +77,10 @@ public class SasaApplication {
             // 파일 저장
             if (config.isEnableFileOutput()) {
                 saveToFile(mapper, apiSpec, config.getOutputFilePath());
+
+                // HTML 파일 생성
+                String htmlPath = config.getOutputFilePath().replace(".json", ".html");
+                saveHtmlFile(apiSpec, htmlPath);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate API spec", e);
@@ -133,6 +139,21 @@ public class SasaApplication {
             Files.createDirectories(parent);
         }
         mapper.writeValue(new File(filePath), spec);
-        System.out.println("API Spec saved to: " + filePath);
+        System.out.println("API Spec (JSON) saved to: " + path.toAbsolutePath());
+    }
+
+    /**
+     * HTML 파일로 저장
+     */
+    private static void saveHtmlFile(Map<String, Object> spec, String filePath) throws Exception {
+        Path path = Paths.get(filePath);
+        Path parent = path.getParent();
+        if (parent != null && !Files.exists(parent)) {
+            Files.createDirectories(parent);
+        }
+
+        String html = HtmlGenerator.generateHtml(spec);
+        Files.write(path, html.getBytes(StandardCharsets.UTF_8));
+        System.out.println("API Spec (HTML) saved to: " + path.toAbsolutePath());
     }
 }
