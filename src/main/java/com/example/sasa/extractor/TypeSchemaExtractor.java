@@ -59,9 +59,85 @@ public class TypeSchemaExtractor {
 
         if (!fields.isEmpty()) {
             schema.put("fields", fields);
+            // JSON 예시 생성
+            schema.put("example", generateJsonExample(fields));
         }
 
         return schema;
+    }
+
+    /**
+     * 필드 정보로부터 JSON 예시 생성
+     */
+    private static Map<String, Object> generateJsonExample(List<Map<String, Object>> fields) {
+        Map<String, Object> example = new LinkedHashMap<>();
+
+        for (Map<String, Object> field : fields) {
+            String fieldName = (String) field.get("name");
+            String fieldType = (String) field.get("type");
+
+            @SuppressWarnings("unchecked")
+            List<String> genericTypes = (List<String>) field.get("genericTypes");
+
+            // 타입에 따른 예시 값 생성
+            Object exampleValue = generateExampleValue(fieldType, genericTypes);
+            example.put(fieldName, exampleValue);
+        }
+
+        return example;
+    }
+
+    /**
+     * 타입에 따른 예시 값 생성
+     */
+    private static Object generateExampleValue(String type, List<String> genericTypes) {
+        switch (type) {
+            case "String":
+                return "string";
+            case "Integer":
+            case "int":
+                return 0;
+            case "Long":
+            case "long":
+                return 0L;
+            case "Double":
+            case "double":
+                return 0.0;
+            case "Float":
+            case "float":
+                return 0.0f;
+            case "Boolean":
+            case "boolean":
+                return false;
+            case "List":
+            case "ArrayList":
+            case "LinkedList":
+                if (genericTypes != null && !genericTypes.isEmpty()) {
+                    return List.of(generateExampleValue(genericTypes.get(0), null));
+                }
+                return List.of();
+            case "Set":
+            case "HashSet":
+            case "LinkedHashSet":
+                if (genericTypes != null && !genericTypes.isEmpty()) {
+                    return Set.of(generateExampleValue(genericTypes.get(0), null));
+                }
+                return Set.of();
+            case "Map":
+            case "HashMap":
+            case "LinkedHashMap":
+                return Map.of();
+            case "LocalDateTime":
+                return "2024-01-01T00:00:00";
+            case "LocalDate":
+                return "2024-01-01";
+            case "LocalTime":
+                return "00:00:00";
+            case "Date":
+                return "2024-01-01T00:00:00Z";
+            default:
+                return type.toLowerCase(); // DTO나 기타 타입은 타입명을 소문자로
+        }
     }
 
     /**
