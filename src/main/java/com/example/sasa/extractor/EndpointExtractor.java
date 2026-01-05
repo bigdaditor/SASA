@@ -82,10 +82,12 @@ public class EndpointExtractor {
                 .collect(Collectors.toSet());
         endpoint.put("produces", produces);
 
-        // Handler
-        endpoint.put("handler", hm.getBeanType().getSimpleName() + "#" + hm.getMethod().getName());
-        endpoint.put("beanType", hm.getBeanType().getSimpleName());
-        endpoint.put("methodName", hm.getMethod().getName());
+        // Handler (구조화된 정보)
+        Map<String, Object> handler = new LinkedHashMap<>();
+        handler.put("controller", hm.getBeanType().getSimpleName());
+        handler.put("method", hm.getMethod().getName());
+        handler.put("fullControllerName", hm.getBeanType().getName());
+        endpoint.put("handler", handler);
 
         // Request 파라미터 정보 추출
         List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(hm.getMethod());
