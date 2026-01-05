@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'maven-publish'
+    id 'jacoco'
 }
 
 group = 'com.example'
@@ -42,10 +43,15 @@ dependencies {
     // Validation API (optional dependency for validation annotations)
     compileOnly 'jakarta.validation:jakarta.validation-api'
 
+    // Validation API for test (runtime dependency)
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
     // Test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework:spring-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -53,6 +59,38 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+// Custom task to run test Spring Boot application
+task runTestApp(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the test Spring Boot application to generate API spec'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.example.sasa.TestApplication'
 }
 
 // Automatically publish to Maven Local after build
