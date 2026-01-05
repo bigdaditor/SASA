@@ -1,8 +1,8 @@
-package com.example.sasa;
+package io.github.bigdaditor.sasa;
 
-import com.example.sasa.dto.OrderDTO;
-import com.example.sasa.dto.ProductDTO;
-import com.example.sasa.dto.UserDTO;
+import io.github.bigdaditor.sasa.dto.OrderDTO;
+import io.github.bigdaditor.sasa.dto.ProductDTO;
+import io.github.bigdaditor.sasa.dto.UserDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;

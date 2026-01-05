@@ -1,8 +1,8 @@
-package com.example.sasa;
+package io.github.bigdaditor.sasa;
 
-import com.example.sasa.extractor.EndpointExtractor;
-import com.example.sasa.extractor.ExceptionHandlerExtractor;
-import com.example.sasa.generator.HtmlGenerator;
+import io.github.bigdaditor.sasa.extractor.EndpointExtractor;
+import io.github.bigdaditor.sasa.extractor.ExceptionHandlerExtractor;
+import io.github.bigdaditor.sasa.generator.HtmlGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

@@ -1,4 +1,4 @@
-package com.example.sasa.dto;
+package io.github.bigdaditor.sasa.dto;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;

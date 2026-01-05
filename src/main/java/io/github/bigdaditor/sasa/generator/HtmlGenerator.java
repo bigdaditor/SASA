@@ -1,4 +1,4 @@
-package com.example.sasa.generator;
+package io.github.bigdaditor.sasa.generator;
 
 import java.util.*;
 

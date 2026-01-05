@@ -1,4 +1,4 @@
-package com.example.sasa;
+package io.github.bigdaditor.sasa;
 
 import java.util.HashSet;
 import java.util.Set;

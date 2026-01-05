@@ -1,4 +1,4 @@
-package com.example.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor;
 
 import org.springframework.web.bind.annotation.*;
 

@@ -1,4 +1,4 @@
-package com.example.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor;
 
 import java.lang.reflect.*;
 import java.util.*;

@@ -5,7 +5,7 @@ plugins {
     id 'jacoco'
 }
 
-group = 'com.example'
+group = 'io.github.bigdaditor'
 version = '0.0.1-SNAPSHOT'
 description = 'SASA - Spring API Spec Analyzer Library'
 

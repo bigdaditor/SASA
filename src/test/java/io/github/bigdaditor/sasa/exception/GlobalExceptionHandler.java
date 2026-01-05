@@ -1,4 +1,4 @@
-package com.example.sasa.exception;
+package io.github.bigdaditor.sasa.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

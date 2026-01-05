@@ -1,6 +1,6 @@
-package com.example.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor;
 
-import com.example.sasa.SasaConfig;
+import io.github.bigdaditor.sasa.SasaConfig;
 import org.springframework.http.MediaType;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;

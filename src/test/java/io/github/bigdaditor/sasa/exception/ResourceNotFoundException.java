@@ -1,4 +1,4 @@
-package com.example.sasa.exception;
+package io.github.bigdaditor.sasa.exception;
 
 /**
  * Custom exception for resource not found scenarios

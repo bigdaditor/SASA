@@ -1,6 +1,6 @@
-package com.example.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor;
 
-import com.example.sasa.dto.UserDTO;
+import io.github.bigdaditor.sasa.dto.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class ParameterExtractorTest {
         Map<String, Object> param = parameters.get(0);
         assertEquals("REQUEST_BODY", param.get("parameterType"));
         assertEquals("UserDTO", param.get("type"));
-        assertEquals("com.example.sasa.dto.UserDTO", param.get("fullType"));
+        assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", param.get("fullType"));
         assertTrue((Boolean) param.get("required"));
         assertNotNull(param.get("schema"), "Should have schema for DTO");
     }

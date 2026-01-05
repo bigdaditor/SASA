@@ -1,6 +1,6 @@
-package com.example.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor;
 
-import com.example.sasa.dto.UserDTO;
+import io.github.bigdaditor.sasa.dto.UserDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
@@ -71,7 +71,7 @@ class ResponseExtractorTest {
         assertEquals("ResponseEntity", response.get("type"));
         assertEquals("org.springframework.http.ResponseEntity", response.get("fullType"));
         assertEquals("UserDTO", response.get("genericType"));
-        assertEquals("com.example.sasa.dto.UserDTO", response.get("genericFullType"));
+        assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", response.get("genericFullType"));
 
         // Verify schema extraction
         assertNotNull(response.get("schema"));
@@ -88,7 +88,7 @@ class ResponseExtractorTest {
         assertEquals("ResponseEntity", response.get("type"));
         assertEquals("List", response.get("genericType"));
         assertEquals("UserDTO", response.get("elementType"));
-        assertEquals("com.example.sasa.dto.UserDTO", response.get("elementFullType"));
+        assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", response.get("elementFullType"));
 
         // Verify schema extraction for element type
         assertNotNull(response.get("schema"));
@@ -103,7 +103,7 @@ class ResponseExtractorTest {
         Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
 
         assertEquals("UserDTO", response.get("type"));
-        assertEquals("com.example.sasa.dto.UserDTO", response.get("fullType"));
+        assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", response.get("fullType"));
 
         // DTO should have schema
         assertNotNull(response.get("schema"));
@@ -147,7 +147,7 @@ class ResponseExtractorTest {
         Map<String, Object> response = ResponseExtractor.extractSimpleResponseInfo(UserDTO.class);
 
         assertEquals("UserDTO", response.get("type"));
-        assertEquals("com.example.sasa.dto.UserDTO", response.get("fullType"));
+        assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", response.get("fullType"));
 
         // DTO should have schema
         assertNotNull(response.get("schema"));

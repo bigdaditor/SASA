@@ -1,4 +1,4 @@
-package com.example.sasa;
+package io.github.bigdaditor.sasa;
 
 import org.junit.jupiter.api.Test;
 

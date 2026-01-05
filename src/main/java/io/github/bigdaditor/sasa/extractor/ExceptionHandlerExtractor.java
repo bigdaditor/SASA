@@ -1,4 +1,4 @@
-package com.example.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
