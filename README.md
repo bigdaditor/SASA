@@ -34,7 +34,7 @@ dependencies {
 
 ```xml
 <dependency>
-    <groupId>com.example</groupId>
+    <groupId>io.github.bigdaditor</groupId>
     <artifactId>sasa</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
