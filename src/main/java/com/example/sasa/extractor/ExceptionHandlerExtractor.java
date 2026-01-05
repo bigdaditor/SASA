@@ -2,8 +2,10 @@ package com.example.sasa.extractor;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.lang.reflect.Method;
@@ -54,10 +56,22 @@ public class ExceptionHandlerExtractor {
                             .collect(Collectors.toList());
 
                     handlerInfo.put("exceptionTypes", exceptionTypeNames);
-                    handlerInfo.put("handler", adviceClass.getSimpleName() + "#" + method.getName());
-                    handlerInfo.put("beanType", adviceClass.getSimpleName());
-                    handlerInfo.put("methodName", method.getName());
-                    handlerInfo.put("beanName", beanName);
+
+                    // Handler (구조화된 정보)
+                    Map<String, Object> handler = new LinkedHashMap<>();
+                    handler.put("controller", adviceClass.getSimpleName());
+                    handler.put("method", method.getName());
+                    handler.put("fullControllerName", adviceClass.getName());
+                    handlerInfo.put("handler", handler);
+
+                    // HTTP Status 추출
+                    HttpStatus httpStatus = extractHttpStatus(method, exceptionTypes);
+                    if (httpStatus != null) {
+                        Map<String, Object> statusInfo = new LinkedHashMap<>();
+                        statusInfo.put("code", httpStatus.value());
+                        statusInfo.put("reasonPhrase", httpStatus.getReasonPhrase());
+                        handlerInfo.put("httpStatus", statusInfo);
+                    }
 
                     // Response 정보 추가
                     Map<String, Object> responseInfo = ResponseExtractor.extractSimpleResponseInfo(method.getReturnType());
@@ -89,5 +103,60 @@ public class ExceptionHandlerExtractor {
         }
 
         return exceptionTypes.toArray(new Class[0]);
+    }
+
+    /**
+     * HTTP Status 추출 (@ResponseStatus annotation 또는 예외 타입 기반 추론)
+     */
+    private static HttpStatus extractHttpStatus(Method method, Class<? extends Throwable>[] exceptionTypes) {
+        // 1. 메서드에 @ResponseStatus가 있는지 확인
+        ResponseStatus responseStatus = AnnotatedElementUtils.findMergedAnnotation(method, ResponseStatus.class);
+        if (responseStatus != null) {
+            return responseStatus.value();
+        }
+
+        // 2. 예외 타입 기반으로 추론
+        if (exceptionTypes.length > 0) {
+            Class<? extends Throwable> primaryException = exceptionTypes[0];
+            return inferHttpStatusFromExceptionType(primaryException);
+        }
+
+        // 3. 기본값 (알 수 없는 경우)
+        return null;
+    }
+
+    /**
+     * 예외 타입으로부터 HTTP Status 추론
+     */
+    private static HttpStatus inferHttpStatusFromExceptionType(Class<? extends Throwable> exceptionType) {
+        String exceptionName = exceptionType.getSimpleName();
+
+        // 일반적인 예외 타입 매핑
+        if (exceptionName.contains("NotFound") || exceptionName.contains("NoSuchElement")) {
+            return HttpStatus.NOT_FOUND;
+        } else if (exceptionName.contains("IllegalArgument") ||
+                   exceptionName.contains("Validation") ||
+                   exceptionName.contains("MethodArgumentNotValid") ||
+                   exceptionName.contains("ConstraintViolation")) {
+            return HttpStatus.BAD_REQUEST;
+        } else if (exceptionName.contains("Unauthorized") ||
+                   exceptionName.contains("Authentication")) {
+            return HttpStatus.UNAUTHORIZED;
+        } else if (exceptionName.contains("Forbidden") ||
+                   exceptionName.contains("AccessDenied")) {
+            return HttpStatus.FORBIDDEN;
+        } else if (exceptionName.contains("Conflict") ||
+                   exceptionName.contains("Duplicate")) {
+            return HttpStatus.CONFLICT;
+        } else if (exceptionName.contains("UnsupportedOperation")) {
+            return HttpStatus.NOT_IMPLEMENTED;
+        } else if (exceptionName.equals("NullPointerException") ||
+                   exceptionName.equals("RuntimeException") ||
+                   exceptionName.equals("Exception")) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        // 기본값: INTERNAL_SERVER_ERROR
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 }
