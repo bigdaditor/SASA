@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.example:sasa:0.0.1-SNAPSHOT'
+    implementation 'io.github.bigdaditor:sasa:0.0.1-SNAPSHOT'
 }
 ```
 
