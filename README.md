@@ -4,49 +4,58 @@
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/technologies/javase-jdk17-downloads.html)
 [![Spring](https://img.shields.io/badge/Spring-6.0+-green.svg)](https://spring.io/)
 
-SASA는 **Spring Boot 애플리케이션의 API 메타데이터를 런타임 기준으로 수집**하여  
-API 스펙을 **JSON 및 HTML 문서 형태로 자동 생성**하는 라이브러리입니다.
+SASA is a Gradle library that automatically extracts API specifications from Spring Boot applications through **runtime introspection**. Instead of parsing source code, it directly reads Spring MVC's runtime mapping information to generate accurate API documentation in JSON and HTML formats.
 
-Spring Context와 Handler Mapping 정보를 기반으로 실제 실행 환경과 일치하는 API 정보를 추출합니다.
-## Summary
+## Why SASA?
 
-- **문제**: API 문서는 코드/문서 간 싱크가 쉽게 깨지고 유지보수 비용이 높음
-- **해결**: Spring 런타임 매핑 정보를 직접 읽어 “실제 동작” 기준의 문서를 자동 생성
-- **결과물**: `build/api-spec.json`, `build/api-spec.html` 자동 생성
+**Tired of Swagger annotation hell?** SASA takes a different approach.
 
-## Key Features
+| Traditional Approach | SASA |
+|---------------------|------|
+| Requires `@Operation`, `@ApiResponse`, `@Schema` annotations everywhere | Zero annotations needed |
+| Documentation can drift from actual implementation | Always accurate - reads actual runtime mappings |
+| Clutters your controller code | Clean controllers, documentation generated separately |
+| Manual maintenance burden | Fully automatic extraction |
 
-- 🚀 **런타임 인트로스펙션** 기반 정확한 매핑 추출
-- 📝 **JSON/HTML 자동 생성** 및 인터랙티브 문서 제공
-- 🔍 **상세 스키마**: 파라미터, Request Body, Response 타입/스키마
-- ⚙️ **유연한 필터링**: 경로/HTTP 메서드 단위 포함/제외
-- 📦 **경량 통합**: 최소 의존성으로 손쉬운 적용
+## Features
 
-## Tech Stack
+* 🚀 **Runtime Introspection**: Directly extracts Spring MVC's actual mapping information
+* 📝 **Auto-generated Documentation**: Outputs API docs in both JSON and HTML formats
+* 🎨 **Clean UI**: Interactive HTML documentation with light/dark themes
+* 🔍 **Comprehensive Details**: Extracts parameters, request bodies, response types, and schemas
+* ⚙️ **Flexible Filtering**: Filter by path patterns or HTTP methods
+* 📦 **Lightweight**: Minimal dependencies for easy integration
 
-- Java 17, Spring Boot 3 / Spring Framework 6
-- Gradle, Jackson
-- Optional: `jakarta.validation-api`
+## Installation
 
-## How It Works
+### Gradle
 
+```groovy
+repositories {
+    mavenLocal()
+    // or mavenCentral() when published
+}
+
+dependencies {
+    implementation 'com.example:sasa:0.0.1-SNAPSHOT'
+}
 ```
-Spring Boot Application
-    ↓
-RequestMappingHandlerMapping (런타임 매핑)
-    ↓
-Extractors (Endpoint/Parameter/Response/Exception)
-    ↓
-API Spec (Map)
-    ↓
-Generators (JSON/HTML)
-    ↓
-Output Files (api-spec.json / api-spec.html)
+
+### Maven
+
+```xml
+<dependency>
+    <groupId>com.example</groupId>
+    <artifactId>sasa</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
 ```
 
 ## Quick Start
 
 ### Basic Usage
+
+Call SASA at your Spring Boot application startup:
 
 ```java
 @SpringBootApplication
@@ -55,11 +64,17 @@ public class YourApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(YourApplication.class, args);
 
+        // Generate API spec
         RequestMappingHandlerMapping mapping = context.getBean(RequestMappingHandlerMapping.class);
         SasaApplication.generateApiSpec(mapping, context);
     }
 }
 ```
+
+After running, the following files are generated:
+
+* `build/api-spec.json` - API specification in JSON format
+* `build/api-spec.html` - Interactive HTML documentation
 
 ### Custom Configuration
 
@@ -75,17 +90,41 @@ SasaConfig config = SasaConfig.builder()
 SasaApplication.generateApiSpec(mapping, context, config);
 ```
 
-## Configuration Highlights
+## Configuration Options
+
+### Output Settings
 
 ```java
 SasaConfig.builder()
-    .enableConsoleOutput(true)
-    .enableFileOutput(true)
-    .outputFilePath("custom/path.json")
-    .applicationName("My Service")
-    .includePath("/api/**")
-    .excludePath("/actuator/**")
-    .onlyReadMethods()
+    .enableConsoleOutput(true)           // Print JSON to console (default: false)
+    .enableFileOutput(true)              // Save to file (default: true)
+    .outputFilePath("custom/path.json")  // Output path (default: build/api-spec.json)
+    .applicationName("My Service")       // App name (default: SASA)
+    .build();
+```
+
+### Path Filtering
+
+```java
+SasaConfig.builder()
+    .includePath("/api/**")              // Include only paths starting with /api
+    .includePath("/user/*")              // Include /user/* pattern
+    .excludePath("/actuator/**")         // Exclude /actuator paths
+    .excludePath("/error")               // Exclude /error path
+    .excludeActuator()                   // Exclude Spring Actuator endpoints
+    .excludeError()                      // Exclude Spring Error endpoints
+    .build();
+```
+
+### HTTP Method Filtering
+
+```java
+SasaConfig.builder()
+    .includeHttpMethod("GET")            // Include only GET methods
+    .includeHttpMethod("POST")           // Include POST methods
+    .excludeHttpMethod("DELETE")         // Exclude DELETE methods
+    .onlyGetMethods()                    // Include GET only
+    .onlyReadMethods()                   // Include GET, HEAD, OPTIONS only
     .build();
 ```
 
@@ -116,11 +155,17 @@ SasaConfig.builder()
         "elementType": "UserDto",
         "schema": {
           "fields": [
-            { "name": "id", "type": "Long" },
+            {
+              "name": "id",
+              "type": "Long"
+            },
             {
               "name": "username",
               "type": "String",
-              "validations": { "notBlank": true, "size": { "min": 3, "max": 20 } }
+              "validations": {
+                "notBlank": true,
+                "size": { "min": 3, "max": 20 }
+              }
             }
           ]
         }
@@ -133,58 +178,162 @@ SasaConfig.builder()
 
 ### HTML Output
 
-- 📊 **Overview**: 엔드포인트 및 예외 핸들러 통계
-- 🔍 **Endpoints**: 상세 정보 아코디언 UI
-- 🎨 **HTTP Method 색상 구분**
-- 📱 **반응형 디자인**
+SASA automatically generates interactive HTML documentation featuring:
 
-## Installation
+* 📊 **Overview**: Statistics for endpoints and exception handlers
+* 🔍 **Endpoints**: Detailed info for each endpoint (click to expand/collapse)
+* 🎨 **HTTP Method Colors**: GET (green), POST (blue), PUT (orange), DELETE (red)
+* 📱 **Responsive Design**: Optimized view across all devices
 
-### Gradle
+## Extracted Information
 
-```gradle
-repositories {
-    mavenLocal()
-    // or mavenCentral() when published
-}
+SASA extracts the following information:
 
-dependencies {
-    implementation 'io.github.bigdaditor:sasa:0.0.1-SNAPSHOT'
-}
+### Endpoint Information
+
+* HTTP methods (GET, POST, PUT, DELETE, PATCH, etc.)
+* Paths
+* Handler methods (Controller and method names)
+* Content Types (Consumes/Produces)
+
+### Parameter Information
+
+* Path Variables
+* Query Parameters
+* Request Headers
+* Request Body (including DTO schema)
+* Parameter types and required status
+
+### Response Information
+
+* Return types
+* Generic types (List, Map, etc.)
+* Element types
+* DTO field schemas
+* Validation annotation info
+
+### Exception Handlers
+
+* Handled exception types
+* Handler methods
+* Advice types (ControllerAdvice, etc.)
+
+## Examples
+
+### Example 1: Public API Only
+
+```java
+SasaConfig config = SasaConfig.builder()
+    .applicationName("Public API")
+    .includePath("/api/v1/**")
+    .excludeActuator()
+    .excludeError()
+    .build();
+
+SasaApplication.generateApiSpec(mapping, context, config);
 ```
 
-### Maven
+### Example 2: Read-Only Endpoints
 
-```xml
-<dependency>
-    <groupId>io.github.bigdaditor</groupId>
-    <artifactId>sasa</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
+```java
+SasaConfig config = SasaConfig.builder()
+    .applicationName("Read-Only API")
+    .onlyReadMethods()  // GET, HEAD, OPTIONS only
+    .build();
+
+SasaApplication.generateApiSpec(mapping, context, config);
+```
+
+### Example 3: Custom Output Path
+
+```java
+SasaConfig config = SasaConfig.builder()
+    .outputFilePath("docs/openapi/api-spec.json")
+    .enableConsoleOutput(true)
+    .build();
+
+SasaApplication.generateApiSpec(mapping, context, config);
+```
+
+## Architecture
+
+Here's how SASA works:
+
+```
+Spring Boot Application
+    ↓
+RequestMappingHandlerMapping (Runtime mapping info)
+    ↓
+SASA Extractors
+    ├── EndpointExtractor (Extracts endpoints)
+    ├── ParameterExtractor (Extracts parameters)
+    ├── ResponseExtractor (Extracts response types)
+    └── ExceptionHandlerExtractor (Extracts exception handlers)
+    ↓
+API Spec (Map)
+    ↓
+Generators
+    ├── JSON Generator (Jackson)
+    └── HTML Generator (Template)
+    ↓
+Output Files
+    ├── api-spec.json
+    └── api-spec.html
 ```
 
 ## Why Runtime Introspection?
 
-- **정확성**: Spring이 해석한 실제 매핑 정보를 사용
-- **단순성**: AST 파싱/어노테이션 프로세싱 불필요
-- **완전성**: 런타임 설정까지 반영
-- **유지보수성**: 프레임워크 업그레이드에 강함
+Here's why we chose runtime introspection over source code parsing:
+
+✅ **Accuracy**: Reads the actual mapping information as interpreted by Spring  
+✅ **Simplicity**: No AST parsing or annotation processing required  
+✅ **Completeness**: Reflects all Spring configurations and conditions  
+✅ **Maintainability**: Stable even when upgrading Spring versions
 
 ## Requirements
 
-- Java 17+
-- Spring Framework 6.0+
-- Spring Boot 3.0+ (recommended)
+* Java 17 or higher
+* Spring Framework 6.0+
+* Spring Boot 3.0+ (recommended)
 
-## Roadmap
+## Dependencies
 
-- [ ] OpenAPI 3.0 스펙 출력 지원
-- [ ] Swagger UI 통합
-- [ ] WebFlux 지원
-- [ ] Markdown 문서 생성
-- [ ] REST API 엔드포인트로 스펙 제공
-- [ ] Postman Collection 생성
+SASA requires only these libraries:
+
+* `spring-webmvc` - Spring MVC core
+* `spring-context` - Spring context
+* `jackson-databind` - JSON serialization
+* `jackson-datatype-jsr310` - Java 8 date/time support
+* `jakarta.validation-api` (optional) - Validation annotation support
 
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## Roadmap
+
+- [ ] OpenAPI 3.0 spec output support
+- [ ] Swagger UI integration
+- [ ] WebFlux support
+- [ ] Markdown documentation generation
+- [ ] REST API endpoint for serving specs
+- [ ] Postman Collection generation
+
+## Author
+
+Created by [@bigdaditor](https://github.com/bigdaditor)
+
+## Acknowledgments
+
+* Spring Framework team for the amazing framework
+* All contributors who help improve this project
