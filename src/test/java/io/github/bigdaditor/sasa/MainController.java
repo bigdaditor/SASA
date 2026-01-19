@@ -1,5 +1,6 @@
 package io.github.bigdaditor.sasa;
 
+import io.github.bigdaditor.sasa.annotation.ApiDescription;
 import io.github.bigdaditor.sasa.dto.OrderDTO;
 import io.github.bigdaditor.sasa.dto.ProductDTO;
 import io.github.bigdaditor.sasa.dto.UserDTO;
@@ -14,16 +15,19 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/test")
+@ApiDescription("SASA 테스트용 컨트롤러")
 public class MainController {
 
     // ========== GET Endpoints (5) ==========
 
     @GetMapping("/string")
+    @ApiDescription("간단한 문자열을 반환합니다")
     public String getString() {
         return "Hello SASA";
     }
 
     @GetMapping("/users")
+    @ApiDescription(value = "모든 사용자 목록을 조회합니다. 페이지네이션 없이 전체 목록을 반환합니다.", summary = "사용자 목록 조회")
     public List<UserDTO> getUsers() {
         return Arrays.asList(
                 new UserDTO(1L, "John Doe", "john@example.com", 30, LocalDate.of(1993, 5, 15)),
@@ -32,6 +36,7 @@ public class MainController {
     }
 
     @GetMapping("/user/{id}")
+    @ApiDescription("ID로 특정 사용자를 조회합니다")
     public UserDTO getUser(@PathVariable Long id) {
         return new UserDTO(id, "John Doe", "john@example.com", 30, LocalDate.of(1993, 5, 15));
     }
@@ -49,16 +54,19 @@ public class MainController {
     // ========== POST Endpoints (5) ==========
 
     @PostMapping("/echo")
+    @ApiDescription("입력받은 메시지를 그대로 반환합니다")
     public String postEcho(@RequestBody String message) {
         return "Echo: " + message;
     }
 
     @PostMapping("/users")
+    @ApiDescription("여러 사용자를 일괄 생성합니다")
     public List<UserDTO> createUsers(@RequestBody List<UserDTO> users) {
         return users;
     }
 
     @PostMapping("/user")
+    @ApiDescription(value = "새로운 사용자를 생성합니다. 이메일은 고유해야 합니다.", summary = "사용자 생성")
     public UserDTO createUser(@RequestBody UserDTO user) {
         return user;
     }

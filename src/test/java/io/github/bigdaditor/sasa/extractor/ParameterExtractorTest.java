@@ -1,8 +1,11 @@
 package io.github.bigdaditor.sasa.extractor;
 
 import io.github.bigdaditor.sasa.dto.UserDTO;
+import io.github.bigdaditor.sasa.extractor.api.ParameterExtractor;
+import io.github.bigdaditor.sasa.extractor.impl.DefaultParameterExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +17,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ParameterExtractorTest {
 
+    private ParameterExtractor parameterExtractor;
+
+    @BeforeEach
+    void setUp() {
+        parameterExtractor = new DefaultParameterExtractor();
+    }
+
     @Test
     void testExtractRequestBodyParameter() throws Exception {
         Method method = TestController.class.getMethod("createUser", UserDTO.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);
@@ -31,7 +41,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractRequestParamWithNameAndDefaultValue() throws Exception {
         Method method = TestController.class.getMethod("searchUsers", String.class, Integer.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(2, parameters.size());
 
@@ -54,7 +64,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractPathVariableParameter() throws Exception {
         Method method = TestController.class.getMethod("getUser", Long.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);
@@ -67,7 +77,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractRequestHeaderParameter() throws Exception {
         Method method = TestController.class.getMethod("getWithAuth", String.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);
@@ -80,7 +90,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractRequestHeaderWithDefaultValue() throws Exception {
         Method method = TestController.class.getMethod("getWithUserAgent", String.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);
@@ -93,7 +103,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractOtherTypeParameters() throws Exception {
         Method method = TestController.class.getMethod("getWithContext", HttpServletRequest.class, HttpSession.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(2, parameters.size());
 
@@ -109,7 +119,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractMixedParameters() throws Exception {
         Method method = TestController.class.getMethod("updateUser", Long.class, UserDTO.class, String.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(3, parameters.size());
 
@@ -131,7 +141,7 @@ class ParameterExtractorTest {
     @Test
     void testExtractNoParameters() throws Exception {
         Method method = TestController.class.getMethod("getAllUsers");
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertTrue(parameters.isEmpty(), "Should return empty list for methods with no parameters");
     }
@@ -139,7 +149,7 @@ class ParameterExtractorTest {
     @Test
     void testRequestParamWithoutName() throws Exception {
         Method method = TestController.class.getMethod("searchByKeyword", String.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);
@@ -151,7 +161,7 @@ class ParameterExtractorTest {
     @Test
     void testPathVariableWithoutName() throws Exception {
         Method method = TestController.class.getMethod("delete", Long.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);
@@ -162,7 +172,7 @@ class ParameterExtractorTest {
     @Test
     void testRequestBodyNotRequired() throws Exception {
         Method method = TestController.class.getMethod("optionalUpdate", UserDTO.class);
-        List<Map<String, Object>> parameters = ParameterExtractor.extractParameters(method);
+        List<Map<String, Object>> parameters = parameterExtractor.extract(method);
 
         assertEquals(1, parameters.size());
         Map<String, Object> param = parameters.get(0);

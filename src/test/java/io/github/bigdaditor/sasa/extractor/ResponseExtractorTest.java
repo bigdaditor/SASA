@@ -1,6 +1,9 @@
 package io.github.bigdaditor.sasa.extractor;
 
 import io.github.bigdaditor.sasa.dto.UserDTO;
+import io.github.bigdaditor.sasa.extractor.api.ResponseExtractor;
+import io.github.bigdaditor.sasa.extractor.impl.DefaultResponseExtractor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
@@ -12,12 +15,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ResponseExtractorTest {
 
+    private ResponseExtractor responseExtractor;
+
+    @BeforeEach
+    void setUp() {
+        responseExtractor = new DefaultResponseExtractor();
+    }
+
     // Test methods for extractResponseInfo
 
     @Test
     void testExtractSimpleStringResponse() throws Exception {
         Method method = TestController.class.getMethod("getString");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("String", response.get("type"));
         assertEquals("java.lang.String", response.get("fullType"));
@@ -27,7 +37,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractIntegerResponse() throws Exception {
         Method method = TestController.class.getMethod("getInteger");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("Integer", response.get("type"));
         assertEquals("java.lang.Integer", response.get("fullType"));
@@ -36,7 +46,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractVoidResponse() throws Exception {
         Method method = TestController.class.getMethod("voidMethod");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("void", response.get("type"));
         assertEquals("void", response.get("fullType"));
@@ -45,7 +55,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractListOfStringResponse() throws Exception {
         Method method = TestController.class.getMethod("getListOfStrings");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("List", response.get("type"));
         assertEquals("java.util.List", response.get("fullType"));
@@ -55,7 +65,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractResponseEntityOfString() throws Exception {
         Method method = TestController.class.getMethod("getResponseEntityOfString");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("ResponseEntity", response.get("type"));
         assertEquals("org.springframework.http.ResponseEntity", response.get("fullType"));
@@ -66,7 +76,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractResponseEntityOfUserDTO() throws Exception {
         Method method = TestController.class.getMethod("getResponseEntityOfUserDTO");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("ResponseEntity", response.get("type"));
         assertEquals("org.springframework.http.ResponseEntity", response.get("fullType"));
@@ -83,7 +93,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractResponseEntityOfListOfUserDTO() throws Exception {
         Method method = TestController.class.getMethod("getResponseEntityOfListOfUserDTO");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("ResponseEntity", response.get("type"));
         assertEquals("List", response.get("genericType"));
@@ -100,7 +110,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractUserDTOResponse() throws Exception {
         Method method = TestController.class.getMethod("getUserDTO");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("UserDTO", response.get("type"));
         assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", response.get("fullType"));
@@ -115,7 +125,7 @@ class ResponseExtractorTest {
     @Test
     void testExtractListOfUserDTOResponse() throws Exception {
         Method method = TestController.class.getMethod("getListOfUserDTO");
-        Map<String, Object> response = ResponseExtractor.extractResponseInfo(method);
+        Map<String, Object> response = responseExtractor.extractResponseInfo(method);
 
         assertEquals("List", response.get("type"));
         // Note: For direct List<UserDTO> without ResponseEntity,
@@ -126,7 +136,7 @@ class ResponseExtractorTest {
 
     @Test
     void testExtractSimpleResponseInfoForString() {
-        Map<String, Object> response = ResponseExtractor.extractSimpleResponseInfo(String.class);
+        Map<String, Object> response = responseExtractor.extractSimpleResponseInfo(String.class);
 
         assertEquals("String", response.get("type"));
         assertEquals("java.lang.String", response.get("fullType"));
@@ -135,7 +145,7 @@ class ResponseExtractorTest {
 
     @Test
     void testExtractSimpleResponseInfoForInteger() {
-        Map<String, Object> response = ResponseExtractor.extractSimpleResponseInfo(Integer.class);
+        Map<String, Object> response = responseExtractor.extractSimpleResponseInfo(Integer.class);
 
         assertEquals("Integer", response.get("type"));
         assertEquals("java.lang.Integer", response.get("fullType"));
@@ -144,7 +154,7 @@ class ResponseExtractorTest {
 
     @Test
     void testExtractSimpleResponseInfoForUserDTO() {
-        Map<String, Object> response = ResponseExtractor.extractSimpleResponseInfo(UserDTO.class);
+        Map<String, Object> response = responseExtractor.extractSimpleResponseInfo(UserDTO.class);
 
         assertEquals("UserDTO", response.get("type"));
         assertEquals("io.github.bigdaditor.sasa.dto.UserDTO", response.get("fullType"));
@@ -158,7 +168,7 @@ class ResponseExtractorTest {
 
     @Test
     void testExtractSimpleResponseInfoForResponseEntity() {
-        Map<String, Object> response = ResponseExtractor.extractSimpleResponseInfo(ResponseEntity.class);
+        Map<String, Object> response = responseExtractor.extractSimpleResponseInfo(ResponseEntity.class);
 
         assertEquals("ResponseEntity", response.get("type"));
         assertEquals("org.springframework.http.ResponseEntity", response.get("fullType"));
@@ -168,7 +178,7 @@ class ResponseExtractorTest {
 
     @Test
     void testExtractSimpleResponseInfoForVoid() {
-        Map<String, Object> response = ResponseExtractor.extractSimpleResponseInfo(void.class);
+        Map<String, Object> response = responseExtractor.extractSimpleResponseInfo(void.class);
 
         assertEquals("void", response.get("type"));
         assertEquals("void", response.get("fullType"));
