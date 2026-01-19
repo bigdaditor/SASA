@@ -12,7 +12,7 @@ SASA is a Gradle library that automatically extracts API specifications from Spr
 
 | Traditional Approach | SASA |
 |---------------------|------|
-| Requires `@Operation`, `@ApiResponse`, `@Schema` annotations everywhere | Zero annotations needed |
+| Requires `@Operation`, `@ApiResponse`, `@Schema` annotations everywhere | Zero annotations needed (optional `@ApiDescription` available) |
 | Documentation can drift from actual implementation | Always accurate - reads actual runtime mappings |
 | Clutters your controller code | Clean controllers, documentation generated separately |
 | Manual maintenance burden | Fully automatic extraction |
@@ -23,7 +23,10 @@ SASA is a Gradle library that automatically extracts API specifications from Spr
 * 📝 **Auto-generated Documentation**: Outputs API docs in both JSON and HTML formats
 * 🎨 **Clean UI**: Interactive HTML documentation with light/dark themes
 * 🔍 **Comprehensive Details**: Extracts parameters, request bodies, response types, and schemas
+* ✅ **Validation Support**: Automatically extracts Bean Validation annotations (`@NotNull`, `@Size`, etc.)
+* 📖 **Optional Descriptions**: Add custom descriptions with `@ApiDescription` annotation
 * ⚙️ **Flexible Filtering**: Filter by path patterns or HTTP methods
+* 🔌 **Extensible Architecture**: Interface-based design for easy customization
 * 📦 **Lightweight**: Minimal dependencies for easy integration
 
 ## Installation
@@ -37,7 +40,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.example:sasa:0.0.1-SNAPSHOT'
+    implementation 'io.github.bigdaditor:sasa:0.0.1-SNAPSHOT'
 }
 ```
 
@@ -45,7 +48,7 @@ dependencies {
 
 ```xml
 <dependency>
-    <groupId>com.example</groupId>
+    <groupId>io.github.bigdaditor</groupId>
     <artifactId>sasa</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
@@ -89,6 +92,34 @@ SasaConfig config = SasaConfig.builder()
 
 SasaApplication.generateApiSpec(mapping, context, config);
 ```
+
+## Adding API Descriptions
+
+Use the `@ApiDescription` annotation to add descriptions to your endpoints:
+
+```java
+@RestController
+@ApiDescription("User management endpoints")
+public class UserController {
+
+    @GetMapping("/users")
+    @ApiDescription("Retrieves all users with pagination support. Returns a list of user objects.")
+    public List<User> getUsers(@RequestParam(defaultValue = "0") int page) {
+        // ...
+    }
+
+    @PostMapping("/users")
+    @ApiDescription(value = "Creates a new user in the system", summary = "Create user")
+    public User createUser(@RequestBody @Valid UserDto dto) {
+        // ...
+    }
+}
+```
+
+The annotation supports:
+- `value`: Full description text
+- `summary`: Short summary (auto-generated from first sentence if not provided)
+- Method-level annotations override class-level annotations
 
 ## Configuration Options
 
@@ -142,17 +173,20 @@ SasaConfig.builder()
       "paths": ["/api/users"],
       "methods": ["GET"],
       "handler": "UserController#getUsers",
+      "description": "Retrieves all users with pagination support",
+      "summary": "Retrieves all users with pagination support",
       "parameters": [
         {
           "name": "page",
           "type": "Integer",
-          "parameterType": "QUERY_PARAM",
-          "required": false
+          "parameterType": "REQUEST_PARAM",
+          "required": false,
+          "defaultValue": "0"
         }
       ],
       "response": {
         "type": "List",
-        "elementType": "UserDto",
+        "elementType": "User",
         "schema": {
           "fields": [
             {
@@ -182,6 +216,7 @@ SASA automatically generates interactive HTML documentation featuring:
 
 * 📊 **Overview**: Statistics for endpoints and exception handlers
 * 🔍 **Endpoints**: Detailed info for each endpoint (click to expand/collapse)
+* 📖 **Descriptions**: Shows summary and full description for documented endpoints
 * 🎨 **HTTP Method Colors**: GET (green), POST (blue), PUT (orange), DELETE (red)
 * 📱 **Responsive Design**: Optimized view across all devices
 
@@ -195,28 +230,85 @@ SASA extracts the following information:
 * Paths
 * Handler methods (Controller and method names)
 * Content Types (Consumes/Produces)
+* Descriptions (from `@ApiDescription`)
 
 ### Parameter Information
 
-* Path Variables
-* Query Parameters
-* Request Headers
-* Request Body (including DTO schema)
+* Path Variables (`@PathVariable`)
+* Query Parameters (`@RequestParam`)
+* Request Headers (`@RequestHeader`)
+* Request Body (`@RequestBody` including DTO schema)
 * Parameter types and required status
+* Default values
 
 ### Response Information
 
 * Return types
-* Generic types (List, Map, etc.)
+* Generic types (List, Map, ResponseEntity, etc.)
 * Element types
 * DTO field schemas
-* Validation annotation info
+
+### Validation Information
+
+Automatically extracts Bean Validation annotations:
+* `@NotNull`, `@NotEmpty`, `@NotBlank`
+* `@Size(min, max)`
+* `@Min`, `@Max`
+* `@Email`, `@Pattern`
+* `@Positive`, `@Negative`, `@PositiveOrZero`, `@NegativeOrZero`
+* `@Past`, `@Future`, `@PastOrPresent`, `@FutureOrPresent`
+* `@Digits`, `@DecimalMin`, `@DecimalMax`
 
 ### Exception Handlers
 
 * Handled exception types
 * Handler methods
 * Advice types (ControllerAdvice, etc.)
+
+## Architecture
+
+SASA uses a modular, interface-based architecture:
+
+```
+Spring Boot Application
+    ↓
+RequestMappingHandlerMapping (Runtime mapping info)
+    ↓
+SASA Extractors (Interface-based)
+    ├── EndpointExtractor      → DefaultEndpointExtractor
+    ├── ParameterExtractor     → DefaultParameterExtractor
+    ├── ResponseExtractor      → DefaultResponseExtractor
+    ├── TypeSchemaExtractor    → DefaultTypeSchemaExtractor
+    ├── ValidationExtractor    → DefaultValidationExtractor
+    ├── DescriptionExtractor   → DefaultDescriptionExtractor
+    └── ExceptionHandlerExtractor → DefaultExceptionHandlerExtractor
+    ↓
+API Spec (Map)
+    ↓
+Output Generators
+    ├── JsonOutputGenerator
+    └── HtmlGenerator
+    ↓
+Output Writers
+    └── FileOutputWriter
+    ↓
+Output Files
+    ├── api-spec.json
+    └── api-spec.html
+```
+
+### Extending SASA
+
+You can create custom extractors by implementing the interfaces:
+
+```java
+public class CustomEndpointExtractor implements EndpointExtractor {
+    @Override
+    public List<Map<String, Object>> extract(RequestMappingHandlerMapping mapping, SasaConfig config) {
+        // Your custom extraction logic
+    }
+}
+```
 
 ## Examples
 
@@ -244,50 +336,37 @@ SasaConfig config = SasaConfig.builder()
 SasaApplication.generateApiSpec(mapping, context, config);
 ```
 
-### Example 3: Custom Output Path
+### Example 3: With API Descriptions
 
 ```java
-SasaConfig config = SasaConfig.builder()
-    .outputFilePath("docs/openapi/api-spec.json")
-    .enableConsoleOutput(true)
-    .build();
+@RestController
+@RequestMapping("/api/products")
+@ApiDescription("Product catalog management")
+public class ProductController {
 
-SasaApplication.generateApiSpec(mapping, context, config);
-```
+    @GetMapping
+    @ApiDescription("Lists all products. Supports filtering by category and pagination.")
+    public Page<Product> listProducts(
+            @RequestParam(required = false) String category,
+            Pageable pageable) {
+        // ...
+    }
 
-## Architecture
-
-Here's how SASA works:
-
-```
-Spring Boot Application
-    ↓
-RequestMappingHandlerMapping (Runtime mapping info)
-    ↓
-SASA Extractors
-    ├── EndpointExtractor (Extracts endpoints)
-    ├── ParameterExtractor (Extracts parameters)
-    ├── ResponseExtractor (Extracts response types)
-    └── ExceptionHandlerExtractor (Extracts exception handlers)
-    ↓
-API Spec (Map)
-    ↓
-Generators
-    ├── JSON Generator (Jackson)
-    └── HTML Generator (Template)
-    ↓
-Output Files
-    ├── api-spec.json
-    └── api-spec.html
+    @GetMapping("/{id}")
+    @ApiDescription(value = "Retrieves a single product by its ID", summary = "Get product")
+    public Product getProduct(@PathVariable Long id) {
+        // ...
+    }
+}
 ```
 
 ## Why Runtime Introspection?
 
 Here's why we chose runtime introspection over source code parsing:
 
-✅ **Accuracy**: Reads the actual mapping information as interpreted by Spring  
-✅ **Simplicity**: No AST parsing or annotation processing required  
-✅ **Completeness**: Reflects all Spring configurations and conditions  
+✅ **Accuracy**: Reads the actual mapping information as interpreted by Spring
+✅ **Simplicity**: No AST parsing or annotation processing required
+✅ **Completeness**: Reflects all Spring configurations and conditions
 ✅ **Maintainability**: Stable even when upgrading Spring versions
 
 ## Requirements
