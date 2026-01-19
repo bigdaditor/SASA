@@ -1,17 +1,28 @@
-package io.github.bigdaditor.sasa.extractor;
+package io.github.bigdaditor.sasa.extractor.impl;
+
+import io.github.bigdaditor.sasa.extractor.api.ResponseExtractor;
+import io.github.bigdaditor.sasa.extractor.api.TypeSchemaExtractor;
 
 import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * Response 타입 정보 추출 (제네릭 타입 포함)
+ * 응답 정보 추출 기본 구현
  */
-public class ResponseExtractor {
+public class DefaultResponseExtractor implements ResponseExtractor {
 
-    /**
-     * 제네릭 타입을 포함한 Response 정보 추출
-     */
-    public static Map<String, Object> extractResponseInfo(Method method) {
+    private final TypeSchemaExtractor typeSchemaExtractor;
+
+    public DefaultResponseExtractor() {
+        this.typeSchemaExtractor = new DefaultTypeSchemaExtractor();
+    }
+
+    public DefaultResponseExtractor(TypeSchemaExtractor typeSchemaExtractor) {
+        this.typeSchemaExtractor = typeSchemaExtractor;
+    }
+
+    @Override
+    public Map<String, Object> extractResponseInfo(Method method) {
         Map<String, Object> responseInfo = new LinkedHashMap<>();
 
         Type genericReturnType = method.getGenericReturnType();
@@ -20,7 +31,6 @@ public class ResponseExtractor {
         responseInfo.put("type", returnType.getSimpleName());
         responseInfo.put("fullType", returnType.getName());
 
-        // ResponseEntity<T> 같은 제네릭 타입 처리
         if (genericReturnType instanceof ParameterizedType) {
             ParameterizedType paramType = (ParameterizedType) genericReturnType;
             Type[] typeArguments = paramType.getActualTypeArguments();
@@ -33,11 +43,9 @@ public class ResponseExtractor {
                     responseInfo.put("genericType", actualClass.getSimpleName());
                     responseInfo.put("genericFullType", actualClass.getName());
 
-                    // DTO 상세 스키마 추출
-                    Map<String, Object> schema = TypeSchemaExtractor.extractTypeSchema(actualClass);
+                    Map<String, Object> schema = typeSchemaExtractor.extractTypeSchema(actualClass);
                     responseInfo.put("schema", schema);
                 } else if (actualType instanceof ParameterizedType) {
-                    // List<UserDTO> 같은 중첩 제네릭
                     ParameterizedType nestedParamType = (ParameterizedType) actualType;
                     Class<?> rawType = (Class<?>) nestedParamType.getRawType();
                     responseInfo.put("genericType", rawType.getSimpleName());
@@ -48,15 +56,13 @@ public class ResponseExtractor {
                         responseInfo.put("elementType", elementType.getSimpleName());
                         responseInfo.put("elementFullType", elementType.getName());
 
-                        // 컬렉션 요소의 스키마 추출
-                        Map<String, Object> schema = TypeSchemaExtractor.extractTypeSchema(elementType);
+                        Map<String, Object> schema = typeSchemaExtractor.extractTypeSchema(elementType);
                         responseInfo.put("schema", schema);
                     }
                 }
             }
         } else {
-            // 제네릭이 아닌 일반 타입
-            Map<String, Object> schema = TypeSchemaExtractor.extractTypeSchema(returnType);
+            Map<String, Object> schema = typeSchemaExtractor.extractTypeSchema(returnType);
             if (!schema.isEmpty()) {
                 responseInfo.put("schema", schema);
             }
@@ -65,19 +71,15 @@ public class ResponseExtractor {
         return responseInfo;
     }
 
-    /**
-     * 단순 Response 타입 정보 추출 (제네릭 없이)
-     */
-    public static Map<String, Object> extractSimpleResponseInfo(Class<?> returnType) {
+    @Override
+    public Map<String, Object> extractSimpleResponseInfo(Class<?> returnType) {
         Map<String, Object> responseInfo = new LinkedHashMap<>();
 
-        // 기본 타입 정보
         responseInfo.put("type", returnType.getSimpleName());
         responseInfo.put("fullType", returnType.getName());
 
-        // 필드 정보 추출 (primitive, wrapper, String, Collection 등은 제외)
-        if (!TypeSchemaExtractor.isSimpleType(returnType)) {
-            Map<String, Object> schema = TypeSchemaExtractor.extractTypeSchema(returnType);
+        if (!typeSchemaExtractor.isSimpleType(returnType)) {
+            Map<String, Object> schema = typeSchemaExtractor.extractTypeSchema(returnType);
             if (!schema.isEmpty()) {
                 responseInfo.put("schema", schema);
             }

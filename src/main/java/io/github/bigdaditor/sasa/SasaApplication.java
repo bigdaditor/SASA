@@ -1,7 +1,9 @@
 package io.github.bigdaditor.sasa;
 
-import io.github.bigdaditor.sasa.extractor.EndpointExtractor;
-import io.github.bigdaditor.sasa.extractor.ExceptionHandlerExtractor;
+import io.github.bigdaditor.sasa.extractor.api.EndpointExtractor;
+import io.github.bigdaditor.sasa.extractor.api.ExceptionHandlerExtractor;
+import io.github.bigdaditor.sasa.extractor.impl.DefaultEndpointExtractor;
+import io.github.bigdaditor.sasa.extractor.impl.DefaultExceptionHandlerExtractor;
 import io.github.bigdaditor.sasa.generator.HtmlGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -23,6 +25,9 @@ import java.util.*;
  * Spring MVC 런타임에 등록된 엔드포인트를 인트로스펙션하여 API 스펙을 JSON으로 추출하는 라이브러리
  */
 public class SasaApplication {
+
+    private static final EndpointExtractor endpointExtractor = new DefaultEndpointExtractor();
+    private static final ExceptionHandlerExtractor exceptionHandlerExtractor = new DefaultExceptionHandlerExtractor();
 
     /**
      * 기본 설정으로 API 스펙을 추출하여 콘솔에 출력하고 파일로 저장
@@ -98,13 +103,13 @@ public class SasaApplication {
      * API 스펙 추출 (ApplicationContext 포함)
      */
     public static Map<String, Object> extractApiSpec(RequestMappingHandlerMapping mapping, ApplicationContext applicationContext, SasaConfig config) {
-        // Endpoints 추출
-        List<Map<String, Object>> endpoints = EndpointExtractor.extractEndpoints(mapping, config);
+        // Endpoints 추출 (새로운 인터페이스 기반 extractor 사용)
+        List<Map<String, Object>> endpoints = endpointExtractor.extract(mapping, config);
 
-        // Exception handlers 추출
+        // Exception handlers 추출 (새로운 인터페이스 기반 extractor 사용)
         List<Map<String, Object>> exceptionHandlers = new ArrayList<>();
         if (applicationContext != null) {
-            exceptionHandlers = ExceptionHandlerExtractor.extractExceptionHandlers(applicationContext);
+            exceptionHandlers = exceptionHandlerExtractor.extract(applicationContext);
         }
 
         // API 스펙 생성
