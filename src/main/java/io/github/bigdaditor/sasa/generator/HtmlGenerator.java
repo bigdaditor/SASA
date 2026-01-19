@@ -354,6 +354,25 @@ public class HtmlGenerator {
         .toggle-icon.active {
             transform: rotate(90deg);
         }
+
+        .endpoint-description {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .endpoint-description .summary {
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 0.5rem;
+        }
+
+        .endpoint-description .full-description {
+            color: #374151;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -454,6 +473,13 @@ public class HtmlGenerator {
         html.append("            </div>\n");
         html.append(String.format("            <div class=\"endpoint-body\" id=\"endpoint-%d\">\n", index));
 
+        // Description 정보
+        @SuppressWarnings("unchecked")
+        Map<String, Object> description = (Map<String, Object>) endpoint.get("description");
+        if (description != null && !description.isEmpty()) {
+            html.append(generateDescriptionSection(description));
+        }
+
         // Handler 정보
         html.append("                <div class=\"info-grid\">\n");
         html.append("                    <div class=\"info-box\">\n");
@@ -478,6 +504,33 @@ public class HtmlGenerator {
 
         html.append("            </div>\n");
         html.append("        </div>\n");
+
+        return html.toString();
+    }
+
+    /**
+     * Description 섹션 생성
+     */
+    private static String generateDescriptionSection(Map<String, Object> description) {
+        StringBuilder html = new StringBuilder();
+
+        String summary = (String) description.get("summary");
+        String fullDescription = (String) description.get("description");
+
+        html.append("                <div class=\"endpoint-description\">\n");
+
+        if (summary != null && !summary.isEmpty()) {
+            html.append(String.format("                    <div class=\"summary\">%s</div>\n",
+                    escapeHtml(summary)));
+        }
+
+        if (fullDescription != null && !fullDescription.isEmpty() &&
+                !fullDescription.equals(summary)) {
+            html.append(String.format("                    <div class=\"full-description\">%s</div>\n",
+                    escapeHtml(fullDescription)));
+        }
+
+        html.append("                </div>\n");
 
         return html.toString();
     }

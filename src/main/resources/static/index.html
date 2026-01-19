@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SASA - API Spec Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header .app-info {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header .app-info .info-item {
+            background: #f7f7f7;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .header .app-info .info-item strong {
+            color: #333;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .file-upload {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .file-upload input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px dashed #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .endpoints {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .endpoint-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .endpoint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .endpoint-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .method-badge {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .method-GET { background: #61affe; color: white; }
+        .method-POST { background: #49cc90; color: white; }
+        .method-PUT { background: #fca130; color: white; }
+        .method-DELETE { background: #f93e3e; color: white; }
+        .method-PATCH { background: #50e3c2; color: white; }
+        .method-OPTIONS { background: #9012fe; color: white; }
+        .method-HEAD { background: #7d8492; color: white; }
+
+        .endpoint-path {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            flex: 1;
+        }
+
+        .endpoint-details {
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 10px;
+            padding-top: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 120px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+
+        .badge-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #e8e8e8;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state h2 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-item .number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SASA - API Spec Viewer</h1>
+            <div class="app-info">
+                <div class="info-item"><strong>Application:</strong> <span id="appName">-</span></div>
+                <div class="info-item"><strong>Version:</strong> <span id="appVersion">-</span></div>
+                <div class="info-item"><strong>Generated:</strong> <span id="generatedAt">-</span></div>
+            </div>
+            <div class="stats" id="stats"></div>
+        </div>
+
+        <div class="controls">
+            <div class="file-upload">
+                <button class="refresh-btn" id="refreshBtn">Refresh API Spec</button>
+                <input type="file" id="fileInput" accept=".json" placeholder="Or upload JSON file..." />
+            </div>
+            <input type="text" id="searchBox" class="search-box" placeholder="Search endpoints (path, method, handler)..." />
+        </div>
+
+        <div class="endpoints" id="endpoints">
+            <div class="empty-state">
+                <h2>No API Spec Loaded</h2>
+                <p>Upload an api-spec.json file to visualize your Spring API endpoints</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let apiSpec = null;
+        let allEndpoints = [];
+
+        // Sample data for demonstration
+        const sampleData = {
+            "applicationName": "Sample Spring Application",
+            "version": "1.0.0",
+            "generatedAt": "2026-01-01T12:00:00",
+            "endpoints": [
+                {
+                    "paths": ["/api/users"],
+                    "methods": ["GET"],
+                    "consumes": ["application/json"],
+                    "produces": ["application/json"],
+                    "handler": "UserController#getUsers",
+                    "beanType": "UserController",
+                    "methodName": "getUsers"
+                },
+                {
+                    "paths": ["/api/users"],
+                    "methods": ["POST"],
+                    "consumes": ["application/json"],
+                    "produces": ["application/json"],
+                    "handler": "UserController#createUser",
+                    "beanType": "UserController",
+                    "methodName": "createUser"
+                },
+                {
+                    "paths": ["/api/users/{id}"],
+                    "methods": ["GET"],
+                    "consumes": [],
+                    "produces": ["application/json"],
+                    "handler": "UserController#getUser",
+                    "beanType": "UserController",
+                    "methodName": "getUser"
+                },
+                {
+                    "paths": ["/api/users/{id}"],
+                    "methods": ["PUT"],
+                    "consumes": ["application/json"],
+                    "produces": ["application/json"],
+                    "handler": "UserController#updateUser",
+                    "beanType": "UserController",
+                    "methodName": "updateUser"
+                },
+                {
+                    "paths": ["/api/users/{id}"],
+                    "methods": ["DELETE"],
+                    "consumes": [],
+                    "produces": [],
+                    "handler": "UserController#deleteUser",
+                    "beanType": "UserController",
+                    "methodName": "deleteUser"
+                },
+                {
+                    "paths": ["/api/products"],
+                    "methods": ["GET"],
+                    "consumes": [],
+                    "produces": ["application/json"],
+                    "handler": "ProductController#getProducts",
+                    "beanType": "ProductController",
+                    "methodName": "getProducts"
+                }
+            ]
+        };
+
+        // Fetch API spec from server
+        async function fetchApiSpec() {
+            const container = document.getElementById('endpoints');
+            container.innerHTML = '<div class="loading">Loading API specification...</div>';
+
+            try {
+                const response = await fetch('/sasa/api-spec');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch API spec');
+                }
+                const data = await response.json();
+                loadApiSpec(data);
+            } catch (error) {
+                console.error('Failed to fetch API spec, loading sample data:', error);
+                loadApiSpec(sampleData);
+            }
+        }
+
+        // Auto-load API spec on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchApiSpec();
+        });
+
+        // Refresh button handler
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            fetchApiSpec();
+        });
+
+        // File upload handler (fallback)
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        loadApiSpec(data);
+                    } catch (error) {
+                        alert('Invalid JSON file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Search handler
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            filterEndpoints(query);
+        });
+
+        function loadApiSpec(data) {
+            apiSpec = data;
+            allEndpoints = data.endpoints || [];
+
+            // Update header info
+            document.getElementById('appName').textContent = data.applicationName || '-';
+            document.getElementById('appVersion').textContent = data.version || '-';
+            document.getElementById('generatedAt').textContent = data.generatedAt ?
+                new Date(data.generatedAt).toLocaleString() : '-';
+
+            // Update stats
+            updateStats(allEndpoints);
+
+            // Render endpoints
+            renderEndpoints(allEndpoints);
+        }
+
+        function updateStats(endpoints) {
+            const stats = {
+                total: endpoints.length,
+                get: 0,
+                post: 0,
+                put: 0,
+                delete: 0
+            };
+
+            endpoints.forEach(endpoint => {
+                endpoint.methods.forEach(method => {
+                    if (method === 'GET') stats.get++;
+                    else if (method === 'POST') stats.post++;
+                    else if (method === 'PUT') stats.put++;
+                    else if (method === 'DELETE') stats.delete++;
+                });
+            });
+
+            const statsHtml = `
+                <div class="stat-item">
+                    <div class="number">${stats.total}</div>
+                    <div class="label">Total Endpoints</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number">${stats.get}</div>
+                    <div class="label">GET</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number">${stats.post}</div>
+                    <div class="label">POST</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number">${stats.put}</div>
+                    <div class="label">PUT</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number">${stats.delete}</div>
+                    <div class="label">DELETE</div>
+                </div>
+            `;
+
+            document.getElementById('stats').innerHTML = statsHtml;
+        }
+
+        function renderEndpoints(endpoints) {
+            const container = document.getElementById('endpoints');
+
+            if (endpoints.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No Endpoints Found</h2>
+                        <p>No endpoints match your search criteria</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = endpoints.map(endpoint => {
+                const methodBadges = endpoint.methods.map(method =>
+                    `<span class="method-badge method-${method}">${method}</span>`
+                ).join('');
+
+                const paths = endpoint.paths.join(', ');
+                const consumes = endpoint.consumes?.length > 0 ?
+                    endpoint.consumes.map(c => `<span class="badge">${c}</span>`).join('') :
+                    '<span class="badge">-</span>';
+                const produces = endpoint.produces?.length > 0 ?
+                    endpoint.produces.map(p => `<span class="badge">${p}</span>`).join('') :
+                    '<span class="badge">-</span>';
+
+                return `
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            ${methodBadges}
+                            <div class="endpoint-path">${paths}</div>
+                        </div>
+                        <div class="endpoint-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Handler:</div>
+                                <div class="detail-value">${endpoint.handler || '-'}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Bean Type:</div>
+                                <div class="detail-value">${endpoint.beanType || '-'}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Method Name:</div>
+                                <div class="detail-value">${endpoint.methodName || '-'}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Consumes:</div>
+                                <div class="badge-list">${consumes}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Produces:</div>
+                                <div class="badge-list">${produces}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function filterEndpoints(query) {
+            if (!query) {
+                renderEndpoints(allEndpoints);
+                return;
+            }
+
+            const filtered = allEndpoints.filter(endpoint => {
+                const pathMatch = endpoint.paths.some(p => p.toLowerCase().includes(query));
+                const methodMatch = endpoint.methods.some(m => m.toLowerCase().includes(query));
+                const handlerMatch = endpoint.handler?.toLowerCase().includes(query);
+                const beanMatch = endpoint.beanType?.toLowerCase().includes(query);
+
+                return pathMatch || methodMatch || handlerMatch || beanMatch;
+            });
+
+            renderEndpoints(filtered);
+        }
+    </script>
+</body>
+</html>
